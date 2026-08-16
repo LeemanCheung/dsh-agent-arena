@@ -1,0 +1,122 @@
+{
+  "name": "dsh-agent-arena",
+  "version": "1.0.0",
+  "description": "Isolated multi-model coding matches with deterministic verification, scoring, and reports",
+  "type": "module",
+  "main": "./packages/dsh-agent-arena/lib/index.js",
+  "types": "./packages/dsh-agent-arena/lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./packages/dsh-agent-arena/lib/index.d.ts",
+      "default": "./packages/dsh-agent-arena/lib/index.js"
+    },
+    "./client": {
+      "types": "./packages/dsh-agent-arena/lib/client.d.ts",
+      "default": "./packages/dsh-agent-arena/lib/client.js"
+    },
+    "./typert": {
+      "types": "./packages/dsh-agent-arena/lib/typert.host.d.ts",
+      "default": "./packages/dsh-agent-arena/lib/typert.host.js"
+    },
+    "./remote": {
+      "types": "./packages/dsh-agent-arena/lib/typert.remote-client.d.ts",
+      "default": "./packages/dsh-agent-arena/lib/typert.remote-client.js"
+    },
+    "./types": {
+      "types": "./packages/dsh-agent-arena/lib/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "packages/dsh-agent-arena/lib/*.js",
+    "packages/dsh-agent-arena/lib/*.d.ts",
+    "packages/dsh-agent-arena/lib/*.js.map",
+    "packages/dsh-agent-arena/lib/*.d.ts.map",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh-CN.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-api-remotes",
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-theme"
+      ]
+    }
+  },
+  "scripts": {
+    "build": "corepack pnpm run build:host && corepack pnpm run build:client",
+    "build:host": "corepack pnpm --dir packages/dsh-agent-arena run build:host",
+    "build:client": "corepack pnpm --dir packages/dsh-agent-arena run build:client",
+    "clean": "corepack pnpm --dir packages/dsh-agent-arena run clean",
+    "typecheck": "corepack pnpm --dir packages/dsh-agent-arena run typecheck",
+    "test": "vitest run",
+    "pack:check": "node scripts/verify-package.mjs && npm pack --dry-run",
+    "prepack": "node scripts/verify-package.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LeemanCheung/dsh-agent-arena.git"
+  },
+  "bugs": {
+    "url": "https://github.com/LeemanCheung/dsh-agent-arena/issues"
+  },
+  "homepage": "https://github.com/LeemanCheung/dsh-agent-arena#readme",
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "cordis"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "packageManager": "pnpm@11.7.0",
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-agent": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-api-remotes": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-runtime": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-ui-settings": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-ui-slots": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-llm": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-session": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-storage-domain": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-subprocess": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-typert-protocol": "^0.1.0-rc.6",
+    "react": "^18.2.0"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@deepseek-ai/dsh-typert-generator": "0.1.0-rc.6",
+    "@types/node": "^22.20.0",
+    "@types/react": "~18.3.1",
+    "lightningcss": "^1.32.0",
+    "tsdown": "^0.22.2",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8",
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-agent": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-api-remotes": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-runtime": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-ui-settings": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-ui-slots": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-llm": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-session": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-storage-domain": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-subprocess": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-typert-protocol": "^0.1.0-rc.6",
+    "react": "^18.2.0"
+  }
+}
