@@ -1,0 +1,4 @@
+# Host orchestration; the package's dsh.client manifest contributes the Settings UI.
+- insert:
+    - id: agent-arena
+      name: dsh-agent-arena
