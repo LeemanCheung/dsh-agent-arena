@@ -4,6 +4,12 @@
 
 DSH 编码竞技场：在隔离 Git worktree 中比较 2–4 个已配置模型，用确定性命令验证改动，审阅每份 diff，并由用户显式应用一名获胜者。
 
+## 界面截图
+
+![Agent Arena 结果与 Diff 审阅](https://raw.githubusercontent.com/LeemanCheung/dsh-agent-arena/main/assets/screenshots/overview.png)
+
+> 使用 GPT Image 根据已实现的 Client 布局和功能生成；实际外观会随 DSH 主题和视口变化。
+
 ## 执行与持久化
 
 - 在操作系统临时目录创建 detached worktree，与被比较仓库分离。

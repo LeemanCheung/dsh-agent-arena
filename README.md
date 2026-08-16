@@ -4,6 +4,12 @@ English | [中文](README.zh-CN.md)
 
 A DSH coding arena for comparing 2–4 configured models in isolated Git worktrees, validating their changes deterministically, reviewing every diff, and explicitly applying one winner.
 
+## Screenshot
+
+![Agent Arena results and diff review](https://raw.githubusercontent.com/LeemanCheung/dsh-agent-arena/main/assets/screenshots/overview.png)
+
+> Generated with GPT Image from the implemented Client layout and feature set; runtime appearance follows the active DSH theme and viewport.
+
 ## Execution and persistence
 
 - Creates detached worktrees under the operating system temporary directory, outside the compared repository.
