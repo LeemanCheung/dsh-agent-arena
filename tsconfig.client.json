@@ -1,0 +1,8 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/dsh-agent-arena"
+    }
+  ]
+}

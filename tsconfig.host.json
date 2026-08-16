@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@deepseek-ai/dsh-typert-protocol": [
+        "./packages/.typert-protocol-meta/src/index.ts"
+      ]
+    }
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/.typert-protocol-meta"
+    },
+    {
+      "path": "./packages/dsh-agent-arena"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": { "composite": true, "rootDir": "src", "outDir": "lib", "tsBuildInfoFile": "lib/tsconfig.client.tsbuildinfo", "types": ["node"], "allowImportingTsExtensions": true },
+  "include": ["src/client/**/*.ts", "src/client/**/*.tsx"]
+}
