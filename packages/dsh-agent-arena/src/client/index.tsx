@@ -98,7 +98,12 @@ function ArenaPanel({ api }: { api: Api }): React.ReactElement {
 
 export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
   const disposeRemote = await ctx.remote.$mount(arenaRemote)
-  const api = apiFrom((ctx.remote as unknown as { agentArena: RawApi }).agentArena)
+  const remote = ctx.get('remote.agentArena') as RawApi | undefined
+  if (remote === undefined) {
+    await disposeRemote()
+    throw new Error('Agent Arena Remote namespace did not mount')
+  }
+  const api = apiFrom(remote)
   ctx.slots.inject('settings.section', () => ctx.slots.register({ name: 'settings.section', id: 'agent-arena', order: 80, label: () => '竞技场', inject: () => ({ api }) }, ArenaPanel))
   return disposeRemote
 }
