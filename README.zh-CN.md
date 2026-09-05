@@ -13,6 +13,7 @@ DSH 编码竞技场：在隔离 Git worktree 中比较 2–4 个已配置模型�
 ## 执行与持久化
 
 - 在操作系统临时目录创建 detached worktree，与被比较仓库分离。
+- 递归清理只允许作用于 Arena 专用目录下严格的“比赛/选手”两级路径，并校验目录联接和符号链接解析后的真实位置。
 - 通过公开的 `ctx.agents.create`、`SessionId`、`createUserMessage` 和 `Agent.followup` API 启动选手。
 - Git 和验证 argv 都通过 `ctx.subprocess.spawn` 执行；绝不经过 shell，并拒绝 shell 操作符。
 - 使用 `storageDomain` 保存比赛报告；Host 重启后，未结束的比赛会标记为失败。
@@ -20,7 +21,7 @@ DSH 编码竞技场：在隔离 Git worktree 中比较 2–4 个已配置模型�
 
 ## 评分与应用
 
-每条验证命令有正权重。选手得分等于成功退出的验证权重占总权重的百分比；同分时按选手 id 稳定排序。不会使用 LLM 评委。
+每条验证命令有正权重。选手得分等于成功退出的验证权重占总权重的百分比；同分时按选手 id 稳定排序。不会使用 LLM 评委。表单不再预填通用验证，因为 `git status --porcelain=v1` 即使打印出改动通常也会成功退出；开始前必须添加该项目自己的测试、类型检查或构建命令。
 
 创建 worktree 前要求 `git status --porcelain=v1` 干净。获胜者 worktree 会保留到用户显式应用。应用时再次检查仓库干净、确认 `HEAD` 仍等于比赛开始时记录的 revision，先运行 `git apply --check`，再运行 `git apply --index --whitespace=error`。Arena 不会自动应用、提交、推送或改写历史。
 
@@ -36,7 +37,7 @@ Settings 通过生成的 `agentArena` Remote 轮询比赛状态；客户端不�
 
 ## 验证命令语法
 
-Settings 字段接受保守的空格分隔 argv，例如 `corepack pnpm test` 或 `git status --porcelain=v1`。引号、shell 变量、管道、重定向、命令分隔符、反引号和换行都会被拒绝。请选择参数本身不含空格的命令。
+Settings 字段接受保守的空格分隔 argv，例如 `corepack pnpm test` 或 `corepack pnpm typecheck`。引号、shell 变量、管道、重定向、命令分隔符、反引号和换行都会被拒绝。请选择参数本身不含空格的命令。
 
 ## 安装
 
@@ -57,5 +58,7 @@ dsh plugin --profile web add github:LeemanCheung/dsh-agent-arena
 ## 开发
 
 在仓库根目录运行 `corepack pnpm typecheck`、`corepack pnpm test`、`corepack pnpm build` 和 `corepack pnpm pack:check`。
+
+1.0.1 已针对 DSH 0.1.2-rc.1 的公开 Host 与 Renderer API 完成构建和静态检查；最终兼容性仍需在配置好模型路由的目标 DSH Profile 中加载验证。
 
 MIT，见 [LICENSE](LICENSE)。

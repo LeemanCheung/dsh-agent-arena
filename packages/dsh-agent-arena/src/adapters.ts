@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
-import { mkdir, rm } from 'node:fs/promises'
+import { lstat, mkdir, realpath, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { basename, isAbsolute, relative, resolve } from 'node:path'
+import { basename, isAbsolute, relative, resolve, sep } from 'node:path'
 import type { AgentRegistry } from '@deepseek-ai/dsh-agent'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import { SessionId } from '@deepseek-ai/dsh-session'
@@ -83,11 +83,18 @@ export class GitWorktreeExecutor implements ArenaExecutor {
 
   async createWorktree(repo: string, matchId: string, contestantId: string): Promise<string> {
     const repository = resolve(repo)
-    const parent = resolve(this.worktreeRoot, matchId)
-    const worktree = resolve(parent, contestantId)
-    const destination = relative(parent, worktree)
-    if (destination.startsWith('..') || isAbsolute(destination)) throw new Error('Invalid worktree destination.')
+    const worktree = this.expectedWorktree(matchId, contestantId)
+    const parent = resolve(worktree, '..')
+    const realRoot = await this.ensureWorktreeRoot()
+    try {
+      const info = await lstat(parent)
+      if (info.isSymbolicLink()) throw new Error('Arena match directory cannot be a symbolic link or junction.')
+      this.assertRealContained(realRoot, await realpath(parent), 'Arena match directory escapes the worktree root.')
+    } catch (error) {
+      if (!(error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT')) throw error
+    }
     await mkdir(parent, { recursive: true })
+    this.assertRealContained(realRoot, await realpath(parent), 'Arena match directory escapes the worktree root.')
     const result = await this.run(repository, ['git', 'worktree', 'add', '--detach', worktree, 'HEAD'], undefined, 60_000)
     if (result.code !== 0) throw new Error(`Worktree create failed: ${result.output}`)
     this.repositories.set(worktree, repository)
@@ -136,12 +143,63 @@ export class GitWorktreeExecutor implements ArenaExecutor {
   }
 
   async cleanup(worktree: string, repository?: string): Promise<void> {
-    const owner = this.repositories.get(worktree) ?? (repository === undefined ? undefined : resolve(repository))
+    const target = await this.cleanupTarget(worktree)
+    if (target === undefined) return
+    const owner = this.repositories.get(target) ?? (repository === undefined ? undefined : resolve(repository))
     if (owner !== undefined) {
-      await this.run(owner, ['git', 'worktree', 'remove', '--force', worktree], undefined, 60_000).catch(() => undefined)
-      this.repositories.delete(worktree)
+      await this.run(owner, ['git', 'worktree', 'remove', '--force', target], undefined, 60_000).catch(() => undefined)
+      this.repositories.delete(target)
     }
-    await rm(worktree, { recursive: true, force: true })
+    await rm(target, { recursive: true, force: true })
+  }
+
+  private async cleanupTarget(worktree: string): Promise<string | undefined> {
+    const root = resolve(this.worktreeRoot)
+    const target = resolve(worktree)
+    const rel = relative(root, target)
+    const parts = rel.split(sep)
+    if (rel === '' || rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel)
+      || parts.length !== 2 || !/^[0-9a-f]{8}-[0-9a-f-]{27}$/iu.test(parts[0] ?? '') || !/^[a-z0-9][a-z0-9-]{0,31}$/u.test(parts[1] ?? '')) {
+      throw new Error(`Refusing to clean a path outside the Arena worktree root: ${worktree}`)
+    }
+    let rootInfo
+    try { rootInfo = await lstat(root) }
+    catch (error) {
+      if (error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT') return undefined
+      throw error
+    }
+    if (rootInfo.isSymbolicLink()) throw new Error('Refusing cleanup because the Arena worktree root is a symbolic link or junction.')
+    try {
+      const info = await lstat(target)
+      if (info.isSymbolicLink()) throw new Error(`Refusing to clean a symbolic-link worktree: ${worktree}`)
+    } catch (error) {
+      if (error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT') return undefined
+      throw error
+    }
+    const realRoot = await realpath(root)
+    const realTarget = await realpath(target)
+    this.assertRealContained(realRoot, realTarget, `Refusing to clean a path outside the Arena worktree root: ${worktree}`)
+    return target
+  }
+
+  private expectedWorktree(matchId: string, contestantId: string): string {
+    if (!/^[0-9a-f]{8}-[0-9a-f-]{27}$/iu.test(matchId) || !/^[a-z0-9][a-z0-9-]{0,31}$/u.test(contestantId)) {
+      throw new Error('Invalid Arena match or contestant identity.')
+    }
+    return resolve(this.worktreeRoot, matchId, contestantId)
+  }
+
+  private async ensureWorktreeRoot(): Promise<string> {
+    const root = resolve(this.worktreeRoot)
+    await mkdir(root, { recursive: true })
+    const info = await lstat(root)
+    if (info.isSymbolicLink()) throw new Error('Arena worktree root cannot be a symbolic link or junction.')
+    return realpath(root)
+  }
+
+  private assertRealContained(realRoot: string, realTarget: string, message: string): void {
+    const rel = relative(realRoot, realTarget)
+    if (rel === '' || rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel)) throw new Error(message)
   }
 
   private async run(cwd: string, argv: string[], signal: AbortSignal | undefined, timeoutMs: number, stdin?: string, outputLimit = 80_000): Promise<CommandResult> {

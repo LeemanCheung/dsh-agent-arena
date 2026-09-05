@@ -33,21 +33,21 @@ declare const ArenaConfigSchema: z.ZodObject<{
   keepWorktrees: z.ZodDefault<z.ZodBoolean>;
 }, z.core.$strict>;
 declare const ArenaStatusSchema: z.ZodEnum<{
-  queued: "queued";
-  preparing: "preparing";
-  running: "running";
-  validating: "validating";
-  scoring: "scoring";
-  completed: "completed";
   cancelled: "cancelled";
+  completed: "completed";
   failed: "failed";
+  preparing: "preparing";
+  queued: "queued";
+  running: "running";
+  scoring: "scoring";
+  validating: "validating";
 }>;
 declare const ContestantStatusSchema: z.ZodEnum<{
-  running: "running";
-  completed: "completed";
   cancelled: "cancelled";
+  completed: "completed";
   failed: "failed";
   pending: "pending";
+  running: "running";
 }>;
 declare const ArenaEventSchema: z.ZodObject<{
   at: z.ZodString;
@@ -159,6 +159,8 @@ declare const ArenaMatchSchema: z.ZodObject<{
 }, z.core.$strict>;
 type Contestant = z.infer<typeof ContestantSchema>;
 type ValidationCommand = z.infer<typeof ValidationCommandSchema>;
+/** No generic command can prove an arbitrary repository is correct; users must choose project-specific checks. */
+declare const DEFAULT_VALIDATION_COMMANDS: readonly ValidationCommand[];
 type ArenaConfig = z.infer<typeof ArenaConfigSchema>;
 type ArenaStatus = z.infer<typeof ArenaStatusSchema>;
 type ArenaEvent = z.infer<typeof ArenaEventSchema>;
@@ -237,6 +239,10 @@ declare class GitWorktreeExecutor implements ArenaExecutor {
   checkpoint(repo: string): Promise<string>;
   apply(repo: string, worktree: string): Promise<void>;
   cleanup(worktree: string, repository?: string): Promise<void>;
+  private cleanupTarget;
+  private expectedWorktree;
+  private ensureWorktreeRoot;
+  private assertRealContained;
   private run;
 }
 declare function worktreeLabel(path: string): string;
@@ -359,5 +365,5 @@ declare class StorageArenaStore implements ArenaStore {
 declare const inject: string[];
 declare function apply(ctx: Context): Promise<void>;
 //#endregion
-export { ApplyRequestSchema, ArenaCapabilityError, ArenaConfig, ArenaConfigSchema, ArenaEvent, ArenaEventSchema, ArenaExecutor, ArenaMatch, ArenaMatchSchema, ArenaService, ArenaServiceOptions, ArenaStatus, ArenaStatusSchema, ArenaStore, CancelRequestSchema, CommandResult, Contestant, ContestantResult, ContestantResultSchema, ContestantSchema, ContestantStatusSchema, DshAgentRunner, GitWorktreeExecutor, ListRequestSchema, MemoryArenaStore, StartRequestSchema, StorageArenaStore, ValidationCommand, ValidationCommandSchema, ValidationResult, ValidationResultSchema, apply, arenaDomainSpec, canCancel, inject, isTerminal, scoreContestant, worktreeLabel };
+export { ApplyRequestSchema, ArenaCapabilityError, ArenaConfig, ArenaConfigSchema, ArenaEvent, ArenaEventSchema, ArenaExecutor, ArenaMatch, ArenaMatchSchema, ArenaService, ArenaServiceOptions, ArenaStatus, ArenaStatusSchema, ArenaStore, CancelRequestSchema, CommandResult, Contestant, ContestantResult, ContestantResultSchema, ContestantSchema, ContestantStatusSchema, DEFAULT_VALIDATION_COMMANDS, DshAgentRunner, GitWorktreeExecutor, ListRequestSchema, MemoryArenaStore, StartRequestSchema, StorageArenaStore, ValidationCommand, ValidationCommandSchema, ValidationResult, ValidationResultSchema, apply, arenaDomainSpec, canCancel, inject, isTerminal, scoreContestant, worktreeLabel };
 //# sourceMappingURL=index.d.ts.map

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, rm } from "node:fs/promises";
+import { lstat, mkdir, realpath, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { basename, isAbsolute, relative, resolve } from "node:path";
+import { basename, isAbsolute, relative, resolve, sep } from "node:path";
 import { createUserMessage } from "@deepseek-ai/dsh-llm";
 import { SessionId } from "@deepseek-ai/dsh-session";
 import { Remote, TypertRemoteService } from "@deepseek-ai/dsh-typert-protocol";
@@ -80,11 +80,17 @@ var GitWorktreeExecutor = class {
 	}
 	async createWorktree(repo, matchId, contestantId) {
 		const repository = resolve(repo);
-		const parent = resolve(this.worktreeRoot, matchId);
-		const worktree = resolve(parent, contestantId);
-		const destination = relative(parent, worktree);
-		if (destination.startsWith("..") || isAbsolute(destination)) throw new Error("Invalid worktree destination.");
+		const worktree = this.expectedWorktree(matchId, contestantId);
+		const parent = resolve(worktree, "..");
+		const realRoot = await this.ensureWorktreeRoot();
+		try {
+			if ((await lstat(parent)).isSymbolicLink()) throw new Error("Arena match directory cannot be a symbolic link or junction.");
+			this.assertRealContained(realRoot, await realpath(parent), "Arena match directory escapes the worktree root.");
+		} catch (error) {
+			if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error;
+		}
 		await mkdir(parent, { recursive: true });
+		this.assertRealContained(realRoot, await realpath(parent), "Arena match directory escapes the worktree root.");
 		const result = await this.run(repository, [
 			"git",
 			"worktree",
@@ -181,21 +187,62 @@ var GitWorktreeExecutor = class {
 		if (applied.code !== 0) throw new Error(`Winner apply failed: ${applied.output}`);
 	}
 	async cleanup(worktree, repository) {
-		const owner = this.repositories.get(worktree) ?? (repository === void 0 ? void 0 : resolve(repository));
+		const target = await this.cleanupTarget(worktree);
+		if (target === void 0) return;
+		const owner = this.repositories.get(target) ?? (repository === void 0 ? void 0 : resolve(repository));
 		if (owner !== void 0) {
 			await this.run(owner, [
 				"git",
 				"worktree",
 				"remove",
 				"--force",
-				worktree
+				target
 			], void 0, 6e4).catch(() => void 0);
-			this.repositories.delete(worktree);
+			this.repositories.delete(target);
 		}
-		await rm(worktree, {
+		await rm(target, {
 			recursive: true,
 			force: true
 		});
+	}
+	async cleanupTarget(worktree) {
+		const root = resolve(this.worktreeRoot);
+		const target = resolve(worktree);
+		const rel = relative(root, target);
+		const parts = rel.split(sep);
+		if (rel === "" || rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel) || parts.length !== 2 || !/^[0-9a-f]{8}-[0-9a-f-]{27}$/iu.test(parts[0] ?? "") || !/^[a-z0-9][a-z0-9-]{0,31}$/u.test(parts[1] ?? "")) throw new Error(`Refusing to clean a path outside the Arena worktree root: ${worktree}`);
+		let rootInfo;
+		try {
+			rootInfo = await lstat(root);
+		} catch (error) {
+			if (error instanceof Error && "code" in error && error.code === "ENOENT") return void 0;
+			throw error;
+		}
+		if (rootInfo.isSymbolicLink()) throw new Error("Refusing cleanup because the Arena worktree root is a symbolic link or junction.");
+		try {
+			if ((await lstat(target)).isSymbolicLink()) throw new Error(`Refusing to clean a symbolic-link worktree: ${worktree}`);
+		} catch (error) {
+			if (error instanceof Error && "code" in error && error.code === "ENOENT") return void 0;
+			throw error;
+		}
+		const realRoot = await realpath(root);
+		const realTarget = await realpath(target);
+		this.assertRealContained(realRoot, realTarget, `Refusing to clean a path outside the Arena worktree root: ${worktree}`);
+		return target;
+	}
+	expectedWorktree(matchId, contestantId) {
+		if (!/^[0-9a-f]{8}-[0-9a-f-]{27}$/iu.test(matchId) || !/^[a-z0-9][a-z0-9-]{0,31}$/u.test(contestantId)) throw new Error("Invalid Arena match or contestant identity.");
+		return resolve(this.worktreeRoot, matchId, contestantId);
+	}
+	async ensureWorktreeRoot() {
+		const root = resolve(this.worktreeRoot);
+		await mkdir(root, { recursive: true });
+		if ((await lstat(root)).isSymbolicLink()) throw new Error("Arena worktree root cannot be a symbolic link or junction.");
+		return realpath(root);
+	}
+	assertRealContained(realRoot, realTarget, message) {
+		const rel = relative(realRoot, realTarget);
+		if (rel === "" || rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel)) throw new Error(message);
 	}
 	async run(cwd, argv, signal, timeoutMs, stdin, outputLimit = 8e4) {
 		const started = Date.now();
@@ -310,6 +357,8 @@ const ArenaMatchSchema = z.object({
 	appliedRevision: z.string().regex(/^[a-f0-9]{40,64}$/i).optional(),
 	error: z.string().max(4e3).optional()
 }).strict();
+/** No generic command can prove an arbitrary repository is correct; users must choose project-specific checks. */
+const DEFAULT_VALIDATION_COMMANDS = [];
 const StartRequestSchema = ArenaConfigSchema;
 const CancelRequestSchema = z.object({ id: z.string().uuid() }).strict();
 const ApplyRequestSchema = CancelRequestSchema;
@@ -694,6 +743,6 @@ async function apply(ctx) {
 	}, "agent-arena: stop matches and close durable domain");
 }
 //#endregion
-export { ApplyRequestSchema, ArenaCapabilityError, ArenaConfigSchema, ArenaEventSchema, ArenaMatchSchema, ArenaService, ArenaStatusSchema, CancelRequestSchema, ContestantResultSchema, ContestantSchema, ContestantStatusSchema, DshAgentRunner, GitWorktreeExecutor, ListRequestSchema, MemoryArenaStore, StartRequestSchema, StorageArenaStore, ValidationCommandSchema, ValidationResultSchema, apply, arenaDomainSpec, canCancel, inject, isTerminal, scoreContestant, worktreeLabel };
+export { ApplyRequestSchema, ArenaCapabilityError, ArenaConfigSchema, ArenaEventSchema, ArenaMatchSchema, ArenaService, ArenaStatusSchema, CancelRequestSchema, ContestantResultSchema, ContestantSchema, ContestantStatusSchema, DEFAULT_VALIDATION_COMMANDS, DshAgentRunner, GitWorktreeExecutor, ListRequestSchema, MemoryArenaStore, StartRequestSchema, StorageArenaStore, ValidationCommandSchema, ValidationResultSchema, apply, arenaDomainSpec, canCancel, inject, isTerminal, scoreContestant, worktreeLabel };
 
 //# sourceMappingURL=index.js.map

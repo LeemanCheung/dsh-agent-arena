@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.1 — 2026-09-05
+
+- Restrict recursive worktree cleanup to the dedicated Arena temporary root and validate both the expected path shape and resolved filesystem location.
+- Start with no generic scoring command, requiring project-specific validation instead of awarding a misleading default 100 score from `git status`.
+- Preserve subprocess failure exit codes in validation results and cover the behavior with a regression test.
+- Migrate the browser client to the DSH 0.1.2 Renderer/Cordis API and update Host peers to 0.1.2-rc.1.
+- Produce stable, invocation-directory-independent Host and Client artifacts and verify portable source maps before packing.
+
 ## 1.0.0 — 2026-08-16
 
 - Initial Arena Host service, Typert Remote endpoints, schemas, state/events, cancellation, weighted scoring, report data, clean Git/worktree lifecycle, checkpointed winner apply, and cleanup.

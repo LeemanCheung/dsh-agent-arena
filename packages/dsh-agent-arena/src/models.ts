@@ -67,6 +67,8 @@ export const ArenaMatchSchema = z.object({
 
 export type Contestant = z.infer<typeof ContestantSchema>
 export type ValidationCommand = z.infer<typeof ValidationCommandSchema>
+/** No generic command can prove an arbitrary repository is correct; users must choose project-specific checks. */
+export const DEFAULT_VALIDATION_COMMANDS: readonly ValidationCommand[] = []
 export type ArenaConfig = z.infer<typeof ArenaConfigSchema>
 export type ArenaStatus = z.infer<typeof ArenaStatusSchema>
 export type ArenaEvent = z.infer<typeof ArenaEventSchema>

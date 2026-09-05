@@ -13,6 +13,7 @@ A DSH coding arena for comparing 2–4 configured models in isolated Git worktre
 ## Execution and persistence
 
 - Creates detached worktrees under the operating system temporary directory, outside the compared repository.
+- Restricts recursive cleanup to the exact two-level match/contestant path under that dedicated Arena directory, including resolved junction and symlink checks.
 - Starts each contestant with the public `ctx.agents.create`, `SessionId`, `createUserMessage`, and `Agent.followup` APIs.
 - Executes Git and validation argv through `ctx.subprocess.spawn`; a shell is never used and shell operators are rejected.
 - Persists match reports through `storageDomain`. An interrupted nonterminal match is marked failed after Host restart.
@@ -20,13 +21,13 @@ A DSH coding arena for comparing 2–4 configured models in isolated Git worktre
 
 ## Scoring and application
 
-Each validation has a positive weight. A contestant score is the percentage of total validation weight that exits successfully; score ties use contestant id as a stable deterministic tie-breaker. No LLM judge is used.
+Each validation has a positive weight. A contestant score is the percentage of total validation weight that exits successfully; score ties use contestant id as a stable deterministic tie-breaker. No LLM judge is used. The form starts without a generic validation because `git status --porcelain=v1` normally exits successfully regardless of whether it prints changes; add the repository's own test, typecheck, or build command before starting.
 
 A match requires clean `git status --porcelain=v1` before worktrees are created. The winner worktree remains available until explicit application. Apply repeats the cleanliness check, verifies that `HEAD` still equals the recorded base revision, runs `git apply --check`, then `git apply --index --whitespace=error`. Arena never auto-applies, commits, pushes, or rewrites history.
 
 ## Validation command syntax
 
-The Settings field accepts conservative whitespace-separated argv such as `corepack pnpm test` or `git status --porcelain=v1`. Quotes, shell variables, pipes, redirections, command separators, backticks, and newlines are rejected. Configure commands whose arguments do not require shell quoting.
+The Settings field accepts conservative whitespace-separated argv such as `corepack pnpm test` or `corepack pnpm typecheck`. Quotes, shell variables, pipes, redirections, command separators, backticks, and newlines are rejected. Configure commands whose arguments do not require shell quoting.
 
 ## Install
 
@@ -47,5 +48,7 @@ Validation argv uses a deliberately conservative tokenizer and cannot represent 
 ## Development
 
 From the repository root run `corepack pnpm typecheck`, `corepack pnpm test`, `corepack pnpm build`, and `corepack pnpm pack:check`.
+
+Version 1.0.1 is built and statically checked against the DSH 0.1.2-rc.1 public Host and Renderer APIs. Final compatibility still requires loading it in the target DSH profile with configured model routes.
 
 MIT. See [LICENSE](LICENSE).

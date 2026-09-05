@@ -1,2 +1,4 @@
 import { clientBundle } from '../../build/plugin-bundle.ts'
-export default clientBundle('dsh-agent-arena')
+import { fileURLToPath } from 'node:url'
+const packageRoot = fileURLToPath(new URL('.', import.meta.url))
+export default clientBundle('dsh-agent-arena', packageRoot)
