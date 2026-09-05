@@ -59,6 +59,7 @@
     "clean": "corepack pnpm --dir packages/dsh-agent-arena run clean",
     "typecheck": "corepack pnpm --dir packages/dsh-agent-arena run typecheck",
     "test": "vitest run",
+    "verify:generated": "node scripts/verify-generated.mjs",
     "pack:check": "node scripts/verify-package.mjs && npm pack --dry-run",
     "prepack": "node scripts/verify-package.mjs"
   },

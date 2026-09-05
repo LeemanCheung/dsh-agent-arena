@@ -7,6 +7,8 @@
 - Preserve subprocess failure exit codes in validation results and cover the behavior with a regression test.
 - Migrate the browser client to the DSH 0.1.2 Renderer/Cordis API and update Host peers to 0.1.2-rc.1.
 - Produce stable, invocation-directory-independent Host and Client artifacts and verify portable source maps before packing.
+- Reject pre-existing contestant worktree destinations before Git sees them, including empty symbolic links and Windows junctions.
+- Rebuild committed release artifacts on Windows and Linux CI and fail when tracked or untracked output differs.
 
 ## 1.0.0 — 2026-08-16
 

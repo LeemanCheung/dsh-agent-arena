@@ -60,5 +60,6 @@ dsh plugin --profile web add github:LeemanCheung/dsh-agent-arena
 在仓库根目录运行 `corepack pnpm typecheck`、`corepack pnpm test`、`corepack pnpm build` 和 `corepack pnpm pack:check`。
 
 1.0.1 已针对 DSH 0.1.2-rc.1 的公开 Host 与 Renderer API 完成构建和静态检查；最终兼容性仍需在配置好模型路由的目标 DSH Profile 中加载验证。
+CI 已配置为在 Windows 和 Linux 上重新构建已提交的 `lib` 产物；任何已跟踪或未跟踪差异都会使检查失败。
 
 MIT，见 [LICENSE](LICENSE)。

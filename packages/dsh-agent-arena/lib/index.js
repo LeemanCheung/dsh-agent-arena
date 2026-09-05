@@ -91,6 +91,12 @@ var GitWorktreeExecutor = class {
 		}
 		await mkdir(parent, { recursive: true });
 		this.assertRealContained(realRoot, await realpath(parent), "Arena match directory escapes the worktree root.");
+		try {
+			await lstat(worktree);
+			throw new Error(`Arena contestant worktree destination already exists: ${worktree}`);
+		} catch (error) {
+			if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error;
+		}
 		const result = await this.run(repository, [
 			"git",
 			"worktree",

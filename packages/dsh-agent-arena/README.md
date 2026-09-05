@@ -45,5 +45,6 @@ Validation argv uses a deliberately conservative tokenizer and cannot represent 
 From the workspace root run `corepack pnpm typecheck`, `corepack pnpm test`, `corepack pnpm build`, and `corepack pnpm pack:check`.
 
 Version 1.0.1 is built and statically checked against the DSH 0.1.2-rc.1 public Host and Renderer APIs. Final compatibility still requires loading it in the target DSH profile with configured model routes.
+CI is configured to rebuild the committed `lib` artifacts on both Windows and Linux and reject any tracked or untracked difference.
 
 MIT. See [LICENSE](LICENSE).

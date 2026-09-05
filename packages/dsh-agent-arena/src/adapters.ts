@@ -95,6 +95,12 @@ export class GitWorktreeExecutor implements ArenaExecutor {
     }
     await mkdir(parent, { recursive: true })
     this.assertRealContained(realRoot, await realpath(parent), 'Arena match directory escapes the worktree root.')
+    try {
+      await lstat(worktree)
+      throw new Error(`Arena contestant worktree destination already exists: ${worktree}`)
+    } catch (error) {
+      if (!(error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT')) throw error
+    }
     const result = await this.run(repository, ['git', 'worktree', 'add', '--detach', worktree, 'HEAD'], undefined, 60_000)
     if (result.code !== 0) throw new Error(`Worktree create failed: ${result.output}`)
     this.repositories.set(worktree, repository)

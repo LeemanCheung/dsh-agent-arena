@@ -86,4 +86,23 @@ describe('GitWorktreeExecutor patch collection',()=>{
       await rm(worktreeRoot, { recursive: true, force: true })
     }
   })
+
+  it('refuses to hand an existing contestant junction to git worktree add', async () => {
+    const worktreeRoot = await mkdtemp(join(tmpdir(), 'arena-create-root-'))
+    const outside = await mkdtemp(join(tmpdir(), 'arena-create-outside-'))
+    const matchId = '12345678-1234-1234-1234-123456789abc'
+    const parent = join(worktreeRoot, matchId)
+    const target = join(parent, 'contestant-1')
+    await mkdir(parent, { recursive: true })
+    await symlink(outside, target, 'junction')
+    const calls: string[][] = []
+    const executor = new GitWorktreeExecutor(fakeRuntime([], calls), {} as DshAgentRunner, worktreeRoot)
+    try {
+      await expect(executor.createWorktree('C:/repo', matchId, 'contestant-1')).rejects.toThrow('already exists')
+      expect(calls).toEqual([])
+    } finally {
+      await rm(worktreeRoot, { recursive: true, force: true })
+      await rm(outside, { recursive: true, force: true })
+    }
+  })
 })
