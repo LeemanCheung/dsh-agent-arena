@@ -10,6 +10,7 @@
 - Reject pre-existing contestant worktree destinations before Git sees them, including empty symbolic links and Windows junctions.
 - Rebuild committed release artifacts on Windows and Linux CI and fail when tracked or untracked output differs.
 - Record `web` compatibility with DSH 0.1.2-rc.1 after Windows Host, Client, Remote, Settings, and form-state UI verification on the QA and existing local profiles; no real model match was run.
+- Normalize source maps without checkout-specific source contents so Windows and Linux rebuild gates compare the same release artifacts.
 
 ## 1.0.0 — 2026-08-16
 

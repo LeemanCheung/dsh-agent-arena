@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { basename, dirname, relative, resolve } from 'node:path'
 import { transform } from 'lightningcss'
@@ -24,6 +24,16 @@ function normalizeGeneratedDeclaration(value: string): string {
     const sorted = body.trimEnd().split('\n').sort((left, right) => left.localeCompare(right)).join('\n')
     return `z.ZodEnum<{\n${sorted}\n}>`
   })
+}
+
+function normalizeSourceMaps(output: string): void {
+  for (const file of readdirSync(output).filter(file => file.endsWith('.map'))) {
+    const path = resolve(output, file)
+    const map = JSON.parse(readFileSync(path, 'utf8')) as { sources?: string[]; sourcesContent?: unknown }
+    if (map.sources !== undefined) map.sources = map.sources.map(source => source.replaceAll('\\', '/'))
+    delete map.sourcesContent
+    writeFileSync(path, JSON.stringify(map))
+  }
 }
 
 function packageTypertPlugin(packageRoot: string) {
@@ -71,8 +81,10 @@ export function hostBundle(packageRoot: string, entries: Record<string, string> 
     plugins: [packageTypertPlugin(packageRoot), {
       name: 'dsh-community-stable-declarations',
       closeBundle() {
-        const declaration = resolve(packageRoot, 'lib', 'index.d.ts')
+        const output = resolve(packageRoot, 'lib')
+        const declaration = resolve(output, 'index.d.ts')
         if (existsSync(declaration)) writeFileSync(declaration, normalizeGeneratedDeclaration(readFileSync(declaration, 'utf8')))
+        normalizeSourceMaps(output)
       },
     }],
     outputOptions: { chunkFileNames: '[name].js' },
@@ -147,6 +159,7 @@ export function clientBundle(packageName: string, packageRoot: string): ReturnTy
         ].join('\n'))
         const client = resolve(output, 'client.js')
         if (existsSync(client)) writeFileSync(client, readFileSync(client, 'utf8').replace(/[\t ]+$/gm, ''))
+        normalizeSourceMaps(output)
         rmSync(resolve(output, 'client.ts.map'), { force: true })
         rmSync(resolve(output, 'tsconfig.tsbuildinfo'), { force: true })
       },

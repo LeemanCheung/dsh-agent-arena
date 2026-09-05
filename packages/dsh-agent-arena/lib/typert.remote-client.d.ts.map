@@ -1,1 +1,1 @@
-{"version":3,"file":"typert.remote-client.d.ts","names":["applyWinner","cancel","get","list","start"],"sources":["../src/arena-service.ts"],"sourcesContent":[null],"mappings":";;;;;;;;;IA2IQA,W;IAZAC,M;IA3CAC,G;IATAC,I;IAgBAC,K;;;IAgDAJ,wB;IAZAC,mB;IA3CAC,gB;IATAC,iB;IAgBAC,kB","ignoreList":[]}
+{"version":3,"file":"typert.remote-client.d.ts","names":["applyWinner","cancel","get","list","start"],"sources":["../src/arena-service.ts"],"mappings":";;;;;;;;;IA2IQA,W;IAZAC,M;IA3CAC,G;IATAC,I;IAgBAC,K;;;IAgDAJ,wB;IAZAC,mB;IA3CAC,gB;IATAC,iB;IAgBAC,kB","ignoreList":[]}

@@ -30,6 +30,7 @@ const buildInputs = ['package.json', 'packages/dsh-agent-arena/package.json', 'b
 for (const file of buildInputs) if (readFileSync(join(repositoryRoot, file), 'utf8').includes('@deepseek-ai/dsh-client-runtime')) errors.push(`${file} still references removed dsh-client-runtime`)
 for (const file of readdirSync(libRoot).filter(file => file.endsWith('.map'))) {
   const map = JSON.parse(readFileSync(join(libRoot, file), 'utf8'))
+  if (Object.hasOwn(map, 'sourcesContent')) errors.push(`${file} embeds platform-dependent source contents`)
   for (const source of map.sources ?? []) if (isAbsolute(source) || /^[a-z]:[\\/]/iu.test(source) || source.includes('\\')) errors.push(`${file} contains a machine-specific source path: ${source}`)
 }
 
