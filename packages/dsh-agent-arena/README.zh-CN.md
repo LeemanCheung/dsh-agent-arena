@@ -54,7 +54,7 @@ dsh plugin --profile web add ../../dist/dsh-agent-arena-1.0.1.tgz
 
 在工作区根目录运行 `corepack pnpm typecheck`、`corepack pnpm test`、`corepack pnpm build` 和 `corepack pnpm pack:check`。
 
-1.0.1 已针对 DSH 0.1.2-rc.1 的公开 Host 与 Renderer API 完成构建和静态检查；最终兼容性仍需在配置好模型路由的目标 DSH Profile 中加载验证。
+1.0.1 已标记兼容 DSH 0.1.2-rc.1 的 `web` Profile。Windows 实测已在 3081 隔离 QA 实例和 3080 现有本地 Profile 中加载 Host 服务、浏览器 Client、生成的 Remote 命名空间和 Settings 面板；表单没有误导性的预填验证，必要字段未填写时“开始”保持禁用。自动化覆盖共 15 项测试。本次 QA 没有启动真实模型比赛，因此兼容结论不包含 Provider 执行和取消行为。
 CI 已配置为在 Windows 和 Linux 上重新构建已提交的 `lib` 产物；任何已跟踪或未跟踪差异都会使检查失败。
 
 MIT，见 [LICENSE](LICENSE)。

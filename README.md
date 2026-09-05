@@ -49,7 +49,7 @@ Validation argv uses a deliberately conservative tokenizer and cannot represent 
 
 From the repository root run `corepack pnpm typecheck`, `corepack pnpm test`, `corepack pnpm build`, and `corepack pnpm pack:check`.
 
-Version 1.0.1 is built and statically checked against the DSH 0.1.2-rc.1 public Host and Renderer APIs. Final compatibility still requires loading it in the target DSH profile with configured model routes.
+Version 1.0.1 is marked compatible with the DSH 0.1.2-rc.1 `web` profile after Windows QA loaded its Host service, browser Client, generated Remote namespace, and Settings section in both the isolated QA instance on port 3081 and the existing local profile on port 3080. The form showed no misleading prefilled validation and kept Start disabled until required fields were supplied. Automated coverage contains 15 passing tests. QA did not start a real model match, so provider execution and cancellation remain outside this compatibility claim.
 CI is configured to rebuild the committed `lib` artifacts on both Windows and Linux and reject any tracked or untracked difference.
 
 MIT. See [LICENSE](LICENSE).

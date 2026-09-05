@@ -50,6 +50,15 @@
         "@deepseek-ai/dsh-client-ui-settings",
         "@deepseek-ai/dsh-client-ui-theme"
       ]
+    },
+    "compatibility": {
+      "dsh": ">=0.1.2-rc.1 <0.1.3-0",
+      "dshReleases": {
+        "0.1.2-rc.1": "compatible"
+      },
+      "profiles": [
+        "web"
+      ]
     }
   },
   "scripts": {

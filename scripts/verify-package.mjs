@@ -20,6 +20,10 @@ for (const [label, manifest] of [['root', rootPackage], ['nested', nestedPackage
   const inject = manifest.dsh?.client?.inject ?? []
   if (!inject.includes('@deepseek-ai/dsh-client-ui-renderer')) errors.push(`${label} client manifest does not inject the 0.1.2 renderer`)
   if (inject.includes('@deepseek-ai/dsh-client-runtime')) errors.push(`${label} client manifest still injects removed dsh-client-runtime`)
+  const compatibility = manifest.dsh?.compatibility
+  if (compatibility?.dsh !== '>=0.1.2-rc.1 <0.1.3-0') errors.push(`${label} compatibility range does not target the tested 0.1.2 release line`)
+  if (compatibility?.dshReleases?.['0.1.2-rc.1'] !== 'compatible') errors.push(`${label} does not record the tested 0.1.2-rc.1 release as compatible`)
+  if (JSON.stringify(compatibility?.profiles) !== JSON.stringify(['web'])) errors.push(`${label} compatibility profiles must be exactly ["web"]`)
 }
 
 const buildInputs = ['package.json', 'packages/dsh-agent-arena/package.json', 'build/plugin-bundle.ts', 'packages/dsh-agent-arena/src/client/index.tsx', 'packages/dsh-agent-arena/lib/client.js']
